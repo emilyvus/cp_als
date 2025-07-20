@@ -10,6 +10,7 @@ if __name__ == "__main__":
     print(script_directory)
     infile = join(script_directory, "../vn_data/input/per_gene/SOD1.chr21.csv")
     outfile_parsed_INFO = join(script_directory, "data/SOD1.chr21.parsed.INFO.csv")
+    outfile_linked_clinvar = join(script_directory, "data/SOD1.chr21.linked_clinvar.csv")
     df = pd.read_csv(infile)
 
     # compute all counts
@@ -29,5 +30,5 @@ if __name__ == "__main__":
     cdf = pd.read_csv(clinvar_infile)
     
     mdf = pd.merge(df, cdf, how='inner', left_on='POS', right_on='new_GRCh38Location')
-
+    mdf.to_csv(outfile_linked_clinvar, index=False)
     pass
