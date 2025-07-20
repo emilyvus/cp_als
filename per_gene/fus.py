@@ -8,8 +8,8 @@ script_directory = pathlib.Path(__file__).parent.resolve()
 
 if __name__ == "__main__":
     print(script_directory)
-    infile = join(script_directory, "../vn_data/input/per_gene/SOD1.chr21.csv")
-    outfile_parsed_INFO = join(script_directory, "data/SOD1.chr21.parsed.INFO.csv")
+    infile = join(script_directory, "../vn_data/input/per_gene/FUS.chr16.csv")
+    outfile_parsed_INFO = join(script_directory, "data/FUS.chr16.parsed.INFO.csv")
     df = pd.read_csv(infile)
 
     # compute all counts
