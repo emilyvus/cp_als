@@ -17,7 +17,6 @@ if __name__ == "__main__":
 
     infiles.sort()
     for infile in infiles:
-        #infile = join(script_directory, "../vn_data/input/per_gene/SOD1.chr21.csv")
         base_filename = basename(infile).replace(".csv", "")
         outfile_parsed_INFO = join(script_directory, f"data/{base_filename}.parsed.INFO.csv")
         outfile_linked_clinvar = join(script_directory, f"data/{base_filename}.linked_clinvar.csv")
