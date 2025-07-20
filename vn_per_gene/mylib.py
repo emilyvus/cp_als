@@ -64,6 +64,7 @@ def do_one_gene(df,cdf, outfile_linked_clinvar, outfile_parsed_INFO, outfile_per
     intersection_df.to_csv(outfile_linked_clinvar, index=False)
 
     pass 
+    return intersection_df
 
 def parse_info_field(df):
     series = df['INFO'].str.split(';')

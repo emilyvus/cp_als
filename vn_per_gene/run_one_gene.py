@@ -7,7 +7,7 @@ script_directory = os.path.dirname(os.path.abspath(__file__))
 
 if __name__ == "__main__":
     print (f"Script dir: {script_directory}")
-    infile = join(script_directory,"../vn_data/input/per_gene/ALS2.chr2.csv")
+    infile = join(script_directory,"../vn_data/input/per_gene/SOD1.chr21.csv")
     base_infile = basename(infile.replace(".csv",""))
 
     clinvar_infile = join(script_directory,"data/standardized_clinvar_result.csv")
