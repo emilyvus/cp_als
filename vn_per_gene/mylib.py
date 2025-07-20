@@ -25,7 +25,7 @@ def count_each_row(row, substr):
             
     return count # return the total count
 
-def do_one_gene(df):
+def do_one_gene(df, outfile_parsed_INFO):
     # compute all counts
     df['c00'] = df.apply(count_each_row, axis=1, substr="0|0")
     df['c10'] = df.apply(count_each_row, axis=1, substr="1|0")
@@ -34,4 +34,26 @@ def do_one_gene(df):
     df['c1s'] = df['c10'] + df['c01'] +  df['c11']
     df['c_sum'] = df['c00'] + df['c1s']
 
+    # parse INFO field
+    df = parse_info_field(df=df)
+    df.to_csv(outfile_parsed_INFO, index=False)
+
     pass
+
+def parse_info_field(df):
+    series = df['INFO'].str.split(';')
+    ll = list()
+    for i, elem in enumerate (series):
+        d=dict()
+        for item in elem:
+            if "=" in item:
+                k,v = item.split("=")
+            else:
+                k,v = item, None
+
+            d[f"INFO:{k}"]= v
+        ll.append(d)
+    
+    info_df = pd.DataFrame(ll)
+    df_final = pd.concat([df, info_df], axis=1)
+    return df_final
