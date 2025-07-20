@@ -1,28 +1,9 @@
-import pandas as pd
 import pathlib
-from os.path import join, basename
-from mylib import count_each_row
-from mylib import parse_info_field
+import pandas as pd
+from os.path import join
+from copy import deepcopy
 
 script_directory = pathlib.Path(__file__).parent.resolve()
-
-def test():
-    # Sample DataFrame
-    data = {'ID': [1, 2], 'Quantity': [2, 3], 'Item': ['Apple', 'Banana']}
-    df = pd.DataFrame(data)
-
-    def expand_row(row):
-        rows_to_add = []
-        for i in range(row['Quantity']):
-            rows_to_add.append({'ID': row['ID'], 'Item': row['Item'], 'Instance': i + 1})
-        return rows_to_add
-
-    # Apply the function and concatenate the results
-    expanded_rows = df.apply(expand_row, axis=1)
-    df_new = pd.DataFrame([item for sublist in expanded_rows for item in sublist])
-    pass
-
-from copy import deepcopy
 def expand_row(row):
     t = row['GRCh38Location'].split("-")
     rows_to_add = list()
