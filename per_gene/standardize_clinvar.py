@@ -46,7 +46,7 @@ if __name__ == "__main__":
     expanded_rows = df_with_minus.apply(expand_row, axis=1) 
     cdf_new = pd.DataFrame([item for sublist in expanded_rows for item in sublist])
     rdf = pd.concat([df_without_minus, cdf_new], axis=0)
-    rdf_chained = rdf.reset_index().rename(columns={'index': 'original_index'})
+    rdf_chained = rdf.reset_index().rename(columns={'index': 'orig_clinvar_idx'})
 
     rdf_chained.to_csv(outfile, index=False)
     pass
