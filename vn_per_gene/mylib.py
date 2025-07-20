@@ -25,7 +25,22 @@ def count_each_row(row, substr):
     
     return count
 
-def do_one_gene(df,outfile_parsed_INFO):
+from copy import deepcopy
+def do_one_gene(df,cdf, outfile_linked_clinvar, outfile_parsed_INFO, outfile_per_genome_counts):
+    gdf =df[vn_genome_ids]
+    tdf = gdf.transpose()
+
+    tdf ['c00'] = tdf.apply(count_each_row,axis=1,substr="0|0")
+    tdf ['c01'] =tdf.apply(count_each_row,axis=1,substr="0|1")
+    tdf ['c10'] = tdf.apply(count_each_row,axis=1,substr="1|0")
+    tdf ['c11'] = tdf.apply(count_each_row,axis=1,substr="1|1")
+    tdf['c1s'] = tdf['c10']+tdf['c11']+tdf['c01']
+    tdf['c_sum']=tdf['c00']+tdf['c1s']
+
+    tdf_new = tdf.reset_index().rename(columns={'index':'vn_genome_ids'})
+    tdf_new = tdf_new[['vn_genome_ids','c00','c01','c10','c11','c1s','c_sum']]
+    tdf_new.to_csv(outfile_per_genome_counts,index=False)
+
     df['c00'] = df.apply(count_each_row, axis = 1, substr="0|0")
     df['c01'] = df.apply(count_each_row, axis = 1, substr="0|1")
     df['c10'] = df.apply(count_each_row, axis = 1, substr="1|0")
@@ -34,7 +49,20 @@ def do_one_gene(df,outfile_parsed_INFO):
     df['c_sum']=df['c00']+df['c1s']
 
     df = parse_info_field(df=df)
+
+    df['l00'] = df.apply(lambda row: find_matching_columns(row,["0|0"]),axis=1)
+    df['l01'] = df.apply(lambda row: find_matching_columns(row,["0|1"]),axis=1)
+    df['l10'] = df.apply(lambda row: find_matching_columns(row,["1|0"]),axis=1)
+    df['l11'] = df.apply(lambda row: find_matching_columns(row,["1|1"]),axis=1)
+    df['ll_all'] = df.apply(lambda row: find_matching_columns(row,["0|1", "1|0", "1|1"]),axis=1)
+
+    df.drop(columns=vn_genome_ids, inplace=True)              
     df.to_csv(outfile_parsed_INFO,index=False)
+
+    #link gene df and clinvar by position
+    intersection_df = pd.merge(df,cdf,how='inner',left_on='POS', right_on='new_GRCh38Location')
+    intersection_df.to_csv(outfile_linked_clinvar, index=False)
+
     pass 
 
 def parse_info_field(df):
@@ -54,3 +82,14 @@ def parse_info_field(df):
     info_df = pd.DataFrame(ll)
     df_final = pd.concat([df, info_df],axis=1)
     return df_final
+
+def find_matching_columns(row, value_to_match):
+    matching_cols = []
+    for col_name, col_value in row.items():
+        for v in value_to_match:
+            if col_value ==v:
+                matching_cols.append(col_name)
+    
+    matching_cols.sort()
+    return",".join(matching_cols)
+
