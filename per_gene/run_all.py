@@ -3,10 +3,8 @@ import pathlib
 import pandas as pd
 from os.path import join, basename
 
-from mylib import vn_genomes
 from mylib import count_1_per_genome
 from mylib import do_one_gene
-from mylib import find_matching_columns
 
 script_directory = pathlib.Path(__file__).parent.resolve()
 
