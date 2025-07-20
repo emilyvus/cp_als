@@ -25,5 +25,9 @@ if __name__ == "__main__":
     # save to file
     df_final.to_csv(outfile_parsed_INFO, index=False)
 
+    clinvar_infile = join(script_directory, "data/standardized_clinvar_result.csv")
+    cdf = pd.read_csv(clinvar_infile)
     
+    mdf = pd.merge(df, cdf, how='inner', left_on='POS', right_on='new_GRCh38Location')
+
     pass
