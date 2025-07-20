@@ -23,17 +23,18 @@ def do_one_gene(df, cdf, outfile_parsed_INFO, outfile_linked_clinvar):
     df['c1s'] = df['c10'] + df['c01'] +  df['c11']
     df['c_sum'] = df['c00'] + df['c1s']
 
+    # parse INFO field
+    df = parse_info_field(df=df)
+
     # Apply the function to each row and create the new column
     df['l00'] = df.apply(lambda row: find_matching_columns(row, ["0|0"]), axis=1)
     df['l01'] = df.apply(lambda row: find_matching_columns(row, ["0|1"]), axis=1)
     df['l10'] = df.apply(lambda row: find_matching_columns(row, ["1|0"]), axis=1)
     df['l11'] = df.apply(lambda row: find_matching_columns(row, ["1|1"]), axis=1)
     df['l1_all'] = df.apply(lambda row: find_matching_columns(row, ["0|1", "1|0", "1|1"]), axis=1)
-    
-    # parse INFO field
-    df_final = parse_info_field(df=df)
+
     # save to file
-    df_final.to_csv(outfile_parsed_INFO, index=False)
+    df.to_csv(outfile_parsed_INFO, index=False)
     mdf = pd.merge(df, cdf, how='inner', left_on='POS', right_on='new_GRCh38Location')
     mdf.to_csv(outfile_linked_clinvar, index=False)
     return mdf
