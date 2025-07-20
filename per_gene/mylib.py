@@ -1,7 +1,20 @@
 import pandas as pd
 from os.path import join
+from typing import List
 
-def do_one_gen(df, cdf, outfile_parsed_INFO, outfile_linked_clinvar):
+vn_genomes = [
+    'HG02513', 'HG02138', 'HG02075', 'HG02031', 'HG02084', 'HG02047', 'HG01597', 'HG01849', 'HG02023', 'HG01846', 'HG02081', 
+    'HG01599', 'HG01866', 'HG02064', 'HG02069', 'HG02087', 'HG02017', 'HG01864', 'HG01868', 'HG01596', 'HG02072', 'HG02079', 
+    'HG01600', 'HG02140', 'HG01841', 'HG02020', 'HG01878', 'HG02085', 'HG01598', 'HG01872', 'HG02073', 'HG01845', 'HG02032', 
+    'HG02088', 'HG01840', 'HG01855', 'HG02050', 'HG01844', 'HG02067', 'HG02133', 'HG02127', 'HG02512', 'HG02040', 'HG01859', 
+    'HG02078', 'HG02070', 'HG02029', 'HG02116', 'HG01842', 'HG01867', 'HG02060', 'HG01843', 'HG02028', 'HG01861', 'HG01869', 
+    'HG01865', 'HG01848', 'HG02048', 'HG02130', 'HG01595', 'HG01860', 'HG01853', 'HG02139', 'HG02121', 'HG01858', 'HG02058', 
+    'HG02076', 'HG02131', 'HG02522', 'HG02019', 'HG01851', 'HG02016', 'HG01874', 'HG02057', 'HG02521', 'HG02035', 'HG02025', 
+    'HG02128', 'HG01862', 'HG02134', 'HG02082', 'HG02122', 'HG01870', 'HG02136', 'HG01852', 'HG02137', 'HG01850', 'HG01857', 
+    'HG02061', 'HG02142', 'HG01863', 'HG02026', 'HG01871', 'HG02141', 'HG01873', 'HG02049', 'HG02086', 'HG02113', 'HG01847'
+    ]
+
+def do_one_gene(df, cdf, outfile_parsed_INFO, outfile_linked_clinvar):
     # compute all counts
     df['c00'] = df.apply(count_each_row, axis=1, substr="0|0")
     df['c10'] = df.apply(count_each_row, axis=1, substr="1|0")
@@ -10,6 +23,13 @@ def do_one_gen(df, cdf, outfile_parsed_INFO, outfile_linked_clinvar):
     df['c1s'] = df['c10'] + df['c01'] +  df['c11']
     df['c_sum'] = df['c00'] + df['c1s']
 
+    # Apply the function to each row and create the new column
+    df['l00'] = df.apply(lambda row: find_matching_columns(row, ["0|0"]), axis=1)
+    df['l01'] = df.apply(lambda row: find_matching_columns(row, ["0|1"]), axis=1)
+    df['l10'] = df.apply(lambda row: find_matching_columns(row, ["1|0"]), axis=1)
+    df['l11'] = df.apply(lambda row: find_matching_columns(row, ["1|1"]), axis=1)
+    df['l1_all'] = df.apply(lambda row: find_matching_columns(row, ["0|1", "1|0", "1|1"]), axis=1)
+    
     # parse INFO field
     df_final = parse_info_field(df=df)
     # save to file
@@ -17,6 +37,32 @@ def do_one_gen(df, cdf, outfile_parsed_INFO, outfile_linked_clinvar):
     mdf = pd.merge(df, cdf, how='inner', left_on='POS', right_on='new_GRCh38Location')
     mdf.to_csv(outfile_linked_clinvar, index=False)
     return mdf
+
+def count_1_per_genome(df, outfile_count_1_per_genome):
+    gdf = df[vn_genomes]
+    # Transpose the DataFrame
+    tdf = gdf.transpose()
+    # compute all counts
+    tdf['c00'] = tdf.apply(count_each_row, axis=1, substr="0|0")
+    tdf['c10'] = tdf.apply(count_each_row, axis=1, substr="1|0")
+    tdf['c01'] = tdf.apply(count_each_row, axis=1, substr="0|1")
+    tdf['c11'] = tdf.apply(count_each_row, axis=1, substr="1|1")
+    tdf['c1s'] = tdf['c10'] + tdf['c01'] +  tdf['c11']
+    tdf['c_sum'] = tdf['c00'] + tdf['c1s']
+    tdf_new = tdf.reset_index().rename(columns={'index': 'vn_genomes'})
+    tdf_new = tdf_new[['vn_genomes', 'c00', 'c10', 'c01', 'c11', 'c1s', 'c_sum']]
+
+    tdf_new.to_csv(outfile_count_1_per_genome, index=False)
+    return tdf_new
+
+# Function to find matching column names
+def find_matching_columns(row, value_to_match: List[str]):
+    matching_cols = []
+    for col_name, col_value in row.items():
+        for v in value_to_match:
+            if col_value == v:
+                matching_cols.append(col_name)
+    return ",".join(matching_cols)
 
 def parse_info_field(df: pd.DataFrame):
     series = df['INFO'].str.split(';')
