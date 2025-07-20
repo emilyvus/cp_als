@@ -2,7 +2,7 @@ import pandas as pd
 from os.path import join
 from typing import List
 
-vn_genomes = [
+vn_genome_ids = [
     'HG02513', 'HG02138', 'HG02075', 'HG02031', 'HG02084', 'HG02047', 'HG01597', 'HG01849', 'HG02023', 'HG01846', 'HG02081', 
     'HG01599', 'HG01866', 'HG02064', 'HG02069', 'HG02087', 'HG02017', 'HG01864', 'HG01868', 'HG01596', 'HG02072', 'HG02079', 
     'HG01600', 'HG02140', 'HG01841', 'HG02020', 'HG01878', 'HG02085', 'HG01598', 'HG01872', 'HG02073', 'HG01845', 'HG02032', 
@@ -33,14 +33,18 @@ def do_one_gene(df, cdf, outfile_parsed_INFO, outfile_linked_clinvar):
     df['l11'] = df.apply(lambda row: find_matching_columns(row, ["1|1"]), axis=1)
     df['l1_all'] = df.apply(lambda row: find_matching_columns(row, ["0|1", "1|0", "1|1"]), axis=1)
 
+    # remove the genome ids here
+    df.drop(columns=vn_genome_ids, inplace=True)
     # save to file
     df.to_csv(outfile_parsed_INFO, index=False)
-    mdf = pd.merge(df, cdf, how='inner', left_on='POS', right_on='new_GRCh38Location')
-    mdf.to_csv(outfile_linked_clinvar, index=False)
-    return mdf
+
+    # link with clinvar
+    intersection_df = pd.merge(df, cdf, how='inner', left_on='POS', right_on='new_GRCh38Location')
+    intersection_df.to_csv(outfile_linked_clinvar, index=False)
+    return intersection_df
 
 def count_1_per_genome(df, outfile_count_1_per_genome):
-    gdf = df[vn_genomes]
+    gdf = df[vn_genome_ids]
     # Transpose the DataFrame
     tdf = gdf.transpose()
     # compute all counts
@@ -50,8 +54,8 @@ def count_1_per_genome(df, outfile_count_1_per_genome):
     tdf['c11'] = tdf.apply(count_each_row, axis=1, substr="1|1")
     tdf['c1s'] = tdf['c10'] + tdf['c01'] +  tdf['c11']
     tdf['c_sum'] = tdf['c00'] + tdf['c1s']
-    tdf_new = tdf.reset_index().rename(columns={'index': 'vn_genomes'})
-    tdf_new = tdf_new[['vn_genomes', 'c00', 'c10', 'c01', 'c11', 'c1s', 'c_sum']]
+    tdf_new = tdf.reset_index().rename(columns={'index': 'vn_genome_ids'})
+    tdf_new = tdf_new[['vn_genome_ids', 'c00', 'c10', 'c01', 'c11', 'c1s', 'c_sum']]
 
     tdf_new.to_csv(outfile_count_1_per_genome, index=False)
     return tdf_new
@@ -63,6 +67,7 @@ def find_matching_columns(row, value_to_match: List[str]):
         for v in value_to_match:
             if col_value == v:
                 matching_cols.append(col_name)
+    matching_cols.sort()
     return ",".join(matching_cols)
 
 def parse_info_field(df: pd.DataFrame):
