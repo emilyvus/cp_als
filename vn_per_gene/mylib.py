@@ -26,7 +26,7 @@ def count_each_row(row, substr):
     return count
 
 from copy import deepcopy
-def do_one_gene(df,cdf, outfile_linked_clinvar, outfile_parsed_INFO, outfile_per_genome_counts):
+def do_one_gene(df,cdf, outfile_linked_clinvar,outfile_linked_clinvar_noindel, outfile_parsed_INFO, outfile_per_genome_counts):
     gdf =df[vn_genome_ids]
     tdf = gdf.transpose()
 
@@ -62,6 +62,8 @@ def do_one_gene(df,cdf, outfile_linked_clinvar, outfile_parsed_INFO, outfile_per
     #link gene df and clinvar by position
     intersection_df = pd.merge(df,cdf,how='inner',left_on='POS', right_on='new_GRCh38Location')
     intersection_df.to_csv(outfile_linked_clinvar, index=False)
+    noindel_df = intersection_df.loc[intersection_df['INFO:VT'] != 'INDEL']
+    noindel_df.to_csv(outfile_linked_clinvar_noindel, index=False)
 
     pass 
     return intersection_df

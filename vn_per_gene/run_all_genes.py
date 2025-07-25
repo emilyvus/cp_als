@@ -19,6 +19,7 @@ if __name__ == "__main__":
         outfile_per_genome_counts = join(script_directory,f"data/{base_filename}.per.genome.counts.csv")
         outfile_parsed_INFO = join(script_directory,f"data/{base_filename}.parsed.INFO.csv")
         outfile_linked_clinvar = join(script_directory,f"data/{base_filename}.linked.clinvar.csv")
+        outfile_linked_clinvar_noindel = join(script_directory,f"data/{base_filename}.linked.clinvar.noindel.csv")
 
 
         #print(standardized_clinvar_infile)
@@ -30,7 +31,8 @@ if __name__ == "__main__":
             cdf= clinvar_df,
             outfile_per_genome_counts=outfile_per_genome_counts,
             outfile_parsed_INFO=outfile_parsed_INFO,
-            outfile_linked_clinvar=outfile_linked_clinvar 
+            outfile_linked_clinvar=outfile_linked_clinvar,
+            outfile_linked_clinvar_noindel=outfile_linked_clinvar_noindel 
             )
         print(f"infile:{infile}, intersection_df:{intersection_df.shape}")
     pass
