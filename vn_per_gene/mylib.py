@@ -27,7 +27,29 @@ def count_each_row(row, substr):
 
 from copy import deepcopy
 def do_one_gene(df,cdf, outfile_linked_clinvar,outfile_linked_clinvar_noindel, outfile_parsed_INFO, outfile_per_genome_counts):
-    gdf =df[vn_genome_ids]
+    
+    df['c00'] = df.apply(count_each_row, axis = 1, substr="0|0")
+    df['c01'] = df.apply(count_each_row, axis = 1, substr="0|1")
+    df['c10'] = df.apply(count_each_row, axis = 1, substr="1|0")
+    df['c11'] = df.apply(count_each_row, axis = 1, substr="1|1")
+    df['c1s']= df ['c10']+df['c01']+df['c11']
+    df['c_sum']=df['c00']+df['c1s']
+    df['vn_af']=df['c1s']/df['c_sum']
+    
+
+    df = parse_info_field(df=df)
+    df = df.loc[df['INFO:EAS_AF'].astype(float) <= 0.3]
+    df = df.loc[df['INFO:VT'] != 'INDEL']
+
+    #df['l00'] = df.apply(lambda row: find_matching_columns(row,["0|0"]),axis=1)
+    #df['l01'] = df.apply(lambda row: find_matching_columns(row,["0|1"]),axis=1)
+    #df['l10'] = df.apply(lambda row: find_matching_columns(row,["1|0"]),axis=1)
+    #df['l11'] = df.apply(lambda row: find_matching_columns(row,["1|1"]),axis=1)
+    df['genome'] = df.apply(lambda row: find_matching_columns(row,["0|1", "1|0", "1|1"]),axis=1)
+    #df.drop(columns=vn_genome_ids, inplace=True)              
+    df.to_csv(outfile_parsed_INFO,index=False)
+
+    gdf = df[vn_genome_ids]
     tdf = gdf.transpose()
 
     tdf ['c00'] = tdf.apply(count_each_row,axis=1,substr="0|0")
@@ -40,24 +62,8 @@ def do_one_gene(df,cdf, outfile_linked_clinvar,outfile_linked_clinvar_noindel, o
     tdf_new = tdf.reset_index().rename(columns={'index':'vn_genome_ids'})
     tdf_new = tdf_new[['vn_genome_ids','c00','c01','c10','c11','c1s','c_sum']]
     tdf_new.to_csv(outfile_per_genome_counts,index=False)
-
-    df['c00'] = df.apply(count_each_row, axis = 1, substr="0|0")
-    df['c01'] = df.apply(count_each_row, axis = 1, substr="0|1")
-    df['c10'] = df.apply(count_each_row, axis = 1, substr="1|0")
-    df['c11'] = df.apply(count_each_row, axis = 1, substr="1|1")
-    df['c1s']= df ['c10']+df['c01']+df['c11']
-    df['c_sum']=df['c00']+df['c1s']
-
-    df = parse_info_field(df=df)
-
-    df['l00'] = df.apply(lambda row: find_matching_columns(row,["0|0"]),axis=1)
-    df['l01'] = df.apply(lambda row: find_matching_columns(row,["0|1"]),axis=1)
-    df['l10'] = df.apply(lambda row: find_matching_columns(row,["1|0"]),axis=1)
-    df['l11'] = df.apply(lambda row: find_matching_columns(row,["1|1"]),axis=1)
-    df['ll_all'] = df.apply(lambda row: find_matching_columns(row,["0|1", "1|0", "1|1"]),axis=1)
-
-    df.drop(columns=vn_genome_ids, inplace=True)              
-    df.to_csv(outfile_parsed_INFO,index=False)
+    
+   
 
     #link gene df and clinvar by position
     intersection_df = pd.merge(df,cdf,how='inner',left_on='POS', right_on='new_GRCh38Location')
