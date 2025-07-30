@@ -33,5 +33,5 @@ for infile in parsed_info_files:
 combined_df = pd.concat(df_list, ignore_index=True)
 print(combined_df.shape)
 
-outputfile = join(script_directory,"data/all_genes.parsed.INFO.csv")
+outputfile = join(script_directory,"data/all_genes.csv")
 combined_df.to_csv(outputfile,index=False)
