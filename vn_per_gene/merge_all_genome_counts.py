@@ -33,5 +33,5 @@ for infile in per_genome_counts:
 combined_df = pd.concat(df_list, ignore_index=True)
 print(combined_df.shape)
 
-outputfile = join(script_directory,"data/all_genes.per.genome.counts.csv")
+outputfile = join(script_directory,"data/all_genes.genome.counts.csv")
 combined_df.to_csv(outputfile,index=False)
