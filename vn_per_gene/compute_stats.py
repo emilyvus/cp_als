@@ -48,7 +48,7 @@ gdf2.to_csv(outputfile_per_gene_c1s,index=False)
 
 
 df3 = df[['gene','vn_af']]
-gdf3 = df2.groupby(['gene']).describe()
+gdf3 = df3.groupby(['gene']).describe()
 gdf3.columns = gdf3.columns.get_level_values(1)
 gdf3.reset_index(inplace=True)
 outputfile_per_gene_vn_af = join(script_directory,"results/per_gene_genome_per_variants_vn_af.csv")
