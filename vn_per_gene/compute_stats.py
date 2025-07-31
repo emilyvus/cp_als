@@ -16,10 +16,10 @@ cols = ['POS','vn_af','c1s']
 df1 = df[cols]
 
 vn_af_stats_all_genes  = df1['vn_af'].describe().to_dict()
-vn_af_stats_all_genes["type"]="genome_per_variants_vn_af"
+vn_af_stats_all_genes["type"]="vn_af"
 
 c1s_stats_all_genes  = df1['c1s'].describe().to_dict()
-c1s_stats_all_genes["type"]="genome_per_variants_c1s"
+c1s_stats_all_genes["type"]="c1s"
 outputfile_all_genes = join(script_directory,"results/genome_per_variants.csv")
 odf = pd.DataFrame(
     [
