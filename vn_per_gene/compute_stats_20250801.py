@@ -35,14 +35,14 @@ df2.to_csv(outfile2,index=False)
 top_genes = ["SOD1","FUS", "C9ORF72", "TARDP", "ERBB4", "ATXN2", "ALS2", "NEK1","FIG4", "SETX"]
 #3a:
 df3 = df[df["gene"].isin(top_genes)][vn_genome_ids+["gene"]]
-df3a=df3.groupby(["gene"]).mean()
+df3a=df3.groupby(["gene"]).sum() / len(vn_genome_ids)
 df3a.reset_index(inplace=True)
 outfile3a = join(script_directory,"20250801/variants_avg_per_genome_per_gene_top_genes.csv")
 df3a.to_csv(outfile3a,index=False)
 
 #3b:
 
-per_genome_variant_avg = df[df["gene"].isin(top_genes)][vn_genome_ids].mean(axis=0)
+per_genome_variant_avg = df[df["gene"].isin(top_genes)][vn_genome_ids].sum(axis=0) / len(vn_genome_ids)
 df3b= pd.DataFrame(per_genome_variant_avg)
 df3b.reset_index(inplace=True)
 df3b.rename(columns={'index':'genome',0:'variant_avg'}, inplace=True)
