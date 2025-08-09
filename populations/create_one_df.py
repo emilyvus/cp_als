@@ -11,11 +11,11 @@ script_directory = pathlib.Path(__file__).parent.resolve()
 if __name__ == "__main__":
 
     # For each population, change the input and output folder 
-    individual_genome_files =glob.glob(join(script_directory,"input/KHV/*.csv"))
-    outfile = join(script_directory,f"output/KHV/all.csv")
+    #individual_genome_files =glob.glob(join(script_directory,"input/KHV/*.csv"))
+    #outfile = join(script_directory,f"output/KHV/all.csv")
 
-    #individual_genome_files =glob.glob(join(script_directory,"/input/GBR   /*.csv"))
-    #outfile = join(script_directory,f"output/GBR/all.csv")
+    individual_genome_files =glob.glob(join(script_directory,"input/GBR/*.csv"))
+    outfile = join(script_directory,f"output/GBR/all.csv")
 
     df_list = list()
     for infile in individual_genome_files:
