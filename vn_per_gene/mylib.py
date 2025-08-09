@@ -26,8 +26,30 @@ def count_each_row(row, substr):
     return count
 
 from copy import deepcopy
-def do_one_gene(df,cdf, outfile_linked_clinvar, outfile_parsed_INFO, outfile_per_genome_counts):
-    gdf =df[vn_genome_ids]
+def do_one_gene(df,cdf, outfile_linked_clinvar,outfile_linked_clinvar_noindel, outfile_parsed_INFO, outfile_per_genome_counts):
+    
+    df['c00'] = df.apply(count_each_row, axis = 1, substr="0|0")
+    df['c01'] = df.apply(count_each_row, axis = 1, substr="0|1")
+    df['c10'] = df.apply(count_each_row, axis = 1, substr="1|0")
+    df['c11'] = df.apply(count_each_row, axis = 1, substr="1|1")
+    df['c1s']= df ['c10']+df['c01']+df['c11']
+    df['c_sum']=df['c00']+df['c1s']
+    df['vn_af']=df['c1s']/df['c_sum']
+    
+
+    df = parse_info_field(df=df)
+    df = df.loc[df['INFO:EAS_AF'].astype(float) <= 0.3]
+    df = df.loc[df['INFO:VT'] != 'INDEL']
+
+    #df['l00'] = df.apply(lambda row: find_matching_columns(row,["0|0"]),axis=1)
+    #df['l01'] = df.apply(lambda row: find_matching_columns(row,["0|1"]),axis=1)
+    #df['l10'] = df.apply(lambda row: find_matching_columns(row,["1|0"]),axis=1)
+    #df['l11'] = df.apply(lambda row: find_matching_columns(row,["1|1"]),axis=1)
+    df['genome'] = df.apply(lambda row: find_matching_columns(row,["0|1", "1|0", "1|1"]),axis=1)
+    #df.drop(columns=vn_genome_ids, inplace=True)              
+    df.to_csv(outfile_parsed_INFO,index=False)
+
+    gdf = df[vn_genome_ids]
     tdf = gdf.transpose()
 
     tdf ['c00'] = tdf.apply(count_each_row,axis=1,substr="0|0")
@@ -40,28 +62,14 @@ def do_one_gene(df,cdf, outfile_linked_clinvar, outfile_parsed_INFO, outfile_per
     tdf_new = tdf.reset_index().rename(columns={'index':'vn_genome_ids'})
     tdf_new = tdf_new[['vn_genome_ids','c00','c01','c10','c11','c1s','c_sum']]
     tdf_new.to_csv(outfile_per_genome_counts,index=False)
-
-    df['c00'] = df.apply(count_each_row, axis = 1, substr="0|0")
-    df['c01'] = df.apply(count_each_row, axis = 1, substr="0|1")
-    df['c10'] = df.apply(count_each_row, axis = 1, substr="1|0")
-    df['c11'] = df.apply(count_each_row, axis = 1, substr="1|1")
-    df['c1s']= df ['c10']+df['c01']+df['c11']
-    df['c_sum']=df['c00']+df['c1s']
-
-    df = parse_info_field(df=df)
-
-    df['l00'] = df.apply(lambda row: find_matching_columns(row,["0|0"]),axis=1)
-    df['l01'] = df.apply(lambda row: find_matching_columns(row,["0|1"]),axis=1)
-    df['l10'] = df.apply(lambda row: find_matching_columns(row,["1|0"]),axis=1)
-    df['l11'] = df.apply(lambda row: find_matching_columns(row,["1|1"]),axis=1)
-    df['ll_all'] = df.apply(lambda row: find_matching_columns(row,["0|1", "1|0", "1|1"]),axis=1)
-
-    df.drop(columns=vn_genome_ids, inplace=True)              
-    df.to_csv(outfile_parsed_INFO,index=False)
+    
+   
 
     #link gene df and clinvar by position
     intersection_df = pd.merge(df,cdf,how='inner',left_on='POS', right_on='new_GRCh38Location')
     intersection_df.to_csv(outfile_linked_clinvar, index=False)
+    noindel_df = intersection_df.loc[intersection_df['INFO:VT'] != 'INDEL']
+    noindel_df.to_csv(outfile_linked_clinvar_noindel, index=False)
 
     pass 
     return intersection_df
@@ -94,3 +102,49 @@ def find_matching_columns(row, value_to_match):
     matching_cols.sort()
     return",".join(matching_cols)
 
+def process_one_gene(df):
+    df['c00'] = df.apply(count_each_row, axis = 1, substr="0|0")
+    df['c01'] = df.apply(count_each_row, axis = 1, substr="0|1")
+    df['c10'] = df.apply(count_each_row, axis = 1, substr="1|0")
+    df['c11'] = df.apply(count_each_row, axis = 1, substr="1|1")
+    df['c1s']= df ['c10']+df['c01']+df['c11']
+    df['c_sum']=df['c00']+df['c1s']
+    df['vn_af']=df['c1s']/df['c_sum']
+    
+    df['genome'] = df.apply(lambda row: find_matching_columns(row,["0|1", "1|0", "1|1"]),axis=1)
+    df.drop(columns=['ID','QUAL'], inplace=True)
+    
+    df = df.replace(['0|0'],0)
+    df = df.replace(['1|0','0|1','1|1'],1)
+    
+    for col in vn_genome_ids:
+        df[col]=df[col].astype(int)
+    
+
+    df = parse_info_field(df=df)
+    df = df.loc[df['INFO:EAS_AF'].astype(float) <= 0.3]
+    df = df.loc[df['INFO:VT'] != 'INDEL']
+
+
+    return df
+               
+    
+def parse_info_field2(df):
+    series = df['INFO'].str.split(';')
+    ll = list()
+    for i, elem in enumerate (series):
+        d=dict()
+        for item in elem:
+            if "=" in item:
+                k,v = item.split("=")
+            else:
+                k,v = item, None
+            
+            d[f"INFO:{k}"]=v
+        ll.append(d)
+    
+    info_df = pd.DataFrame(ll)
+    df_final = pd.concat([df, info_df],axis=1)
+    return df_final
+
+   
