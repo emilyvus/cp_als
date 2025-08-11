@@ -2,6 +2,9 @@
 
 Create for all populations the ALS analysis.
 
+Look at `populations` folder
+
+
 ## Working Folder:
 https://drive.google.com/drive/u/0/folders/1aWJd9DvcOKG29x5Ck66dFynI-YYbOOaP
 
