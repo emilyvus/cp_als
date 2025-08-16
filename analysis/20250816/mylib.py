@@ -66,7 +66,13 @@ def genome_variant_mean (df,genome_ids):
 
 
 
-def mean_variant_count(df,genome_ids):
+def mean_variant_count_one_population(df,genome_ids):
+    """
+    This method works for one population. 
+    1. For each genome, count the number of variants per gene
+    2. For each gene, count the total number of variants across all genomes
+    3. Take this total, divide by the amount of genomes
+    """
     df = df[["gene"]+ genome_ids ]
     g_df = df.groupby(["gene"]).sum().sum(axis=1)
     g_df = g_df /len(genome_ids)
@@ -74,19 +80,29 @@ def mean_variant_count(df,genome_ids):
     rdf['mean']= g_df / len(genome_ids)
     return rdf
 
-def total_variant_count(df,genome_ids):
+def total_variant_count_one_population(df,genome_ids):
+    """
+    This method works on one population.
+    1. For each genome, count the number of variants per gene
+    2. For each gene, count the total number of variants across all genomes
+    3. Output the data frame of one column named 'count'
+    """
     df = df[["gene"]+ genome_ids ]
     g_df = df.groupby(["gene"]).sum().sum(axis=1)
     rdf= pd.DataFrame()
     rdf['count']= g_df 
     return rdf
 
-def create_gnome_mean_df(root_dir,genomes:Dict,outputfile:str=None):
+def create_mean_variant_count_all_population_df(root_dir,genomes:Dict,outputfile:str=None):
+    """
+    This method works for all populations.
+    It outputs a dataframe where each column is a population. The dataframe is used for statistical analysis (t-test/Tukey's HSD/ANOVA)
+    """
     df_list = list()
     for population_name in genomes:
         infile = join(root_dir,f"populations/output/{population_name}/all.csv")
         idf = pd.read_csv(infile)
-        odf = mean_variant_count(df=idf,genome_ids = genomes[population_name])
+        odf = mean_variant_count_one_population(df=idf,genome_ids = genomes[population_name])
         odf.rename(columns={'mean':population_name},inplace=True)
         df_list.append(odf)
     mdf = pd.concat(df_list,axis=1)
@@ -95,12 +111,16 @@ def create_gnome_mean_df(root_dir,genomes:Dict,outputfile:str=None):
 
     return mdf
 
-def create_gnome_count_df(root_dir,genomes:Dict,outputfile:str=None):
+def create_total_variant_count_all_population_df(root_dir,genomes:Dict,outputfile:str=None):
+    """
+    This method works on all populations. It outputs a data frame, each column is for one population and includes the total variant counts per gene across all genomes. 
+    The output dataframe is used for statistical analysis (t-test/Tukey's HSD/ANOVA)
+    """
     df_list = list()
     for population_name in genomes:
         infile = join(root_dir,f"populations/output/{population_name}/all.csv")
         idf = pd.read_csv(infile)
-        odf = total_variant_count(df=idf,genome_ids = genomes[population_name])
+        odf = total_variant_count_one_population(df=idf,genome_ids = genomes[population_name])
         odf.rename(columns={'count':population_name},inplace=True)
         df_list.append(odf)
     mdf = pd.concat(df_list,axis=1)
@@ -127,5 +147,30 @@ if __name__ == "__main__":
     # df_list.append(odf)
     # mdf = pd.concat(df_list,axis=1)
 
-    mdf1 = create_gnome_mean_df(root_dir=root_dir,genomes=genomes)
+    mdf1 = create_mean_variant_count_all_population_df(root_dir=root_dir,genomes=genomes)
     pass
+
+def create_per_genome_variant_mean_all_population_df(root_dir,genomes:Dict,outputfile:str=None):
+    """
+    This method works on all populations.
+
+    For each population, it creates a list of numbers. Each number represents the mean number of variant counts a genome has, across all 34 genes. 
+
+    For example, a list for KHV would have 99 numbers since there are 99 genomes. One number (representing a genome) would be the mean amount of variant counts across all genes for that genome. 
+
+    """
+    output = dict()
+    df_list = list()
+    for population_name in genomes:
+        infile = join(root_dir,f"populations/output/{population_name}/all.csv")
+        idf = pd.read_csv(infile)
+        idf = idf[["gene"]+ genomes[population_name]]
+        odf = idf.groupby(["gene"]).sum().sum() / len(genomes[population_name])
+        output[population_name]=list(odf.values)
+    # only to save to the file for inspecting and checking the dataframe
+    if outputfile:
+        tdf = pd.DataFrame.from_dict(output,orient='index')
+        tdf=tdf.transpose()
+        tdf.to_csv(outputfile,index=False)
+
+    return output
