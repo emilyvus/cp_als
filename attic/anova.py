@@ -8,7 +8,7 @@ group2_scores = np.array([78, 81, 75, 88, 82, 79, 70, 85, 76, 80])
 group3_scores = np.array([91, 94, 85, 98, 93, 96, 88, 82, 90, 95])
 
 # Perform the one-way ANOVA test
-f_statistic, p_value = f_oneway(group1_scores, group2_scores, group3_scores)
+f_statistic, p_value = f_oneway(group1_scores, group2_scores, group3_scores, nan_policy='omit')
 
 # Print the results
 print(f"F-statistic: {f_statistic:.2f}")
