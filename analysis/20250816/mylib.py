@@ -33,14 +33,30 @@ genomes = {
 
 }
 
+def compute_t_test(mdf,population_name_1 = "GBR",population_name_2 = "ASW"):
+     t_statistic, p_value = stats.ttest_ind(mdf[population_name_1], mdf[population_name_2], equal_var=True)
+     print(f"\nTwo-Sample Independent T-Test for {population_name_1} and {population_name_2}:")
+     print(f"T-statistic: {t_statistic:.4f}")
+     print(f"P-value: {p_value:.4f}")
+
+
+
+
 def mean_variant_count(df,genome_ids):
     df = df[["gene"]+ genome_ids ]
     g_df = df.groupby(["gene"]).sum().sum(axis=1)
     g_df = g_df /len(genome_ids)
     rdf= pd.DataFrame()
     rdf['mean']= g_df / len(genome_ids)
-    rdf.head()
     return rdf
+
+def total_variant_count(df,genome_ids):
+    df = df[["gene"]+ genome_ids ]
+    g_df = df.groupby(["gene"]).sum().sum(axis=1)
+    rdf= pd.DataFrame()
+    rdf['count']= g_df 
+    return rdf
+
 
 from typing import Dict, List
 def create_gnome_mean_df(root_dir,genomes:Dict,outputfile:str=None):
@@ -57,6 +73,19 @@ def create_gnome_mean_df(root_dir,genomes:Dict,outputfile:str=None):
 
     return mdf
 
+def create_gnome_count_df(root_dir,genomes:Dict,outputfile:str=None):
+    df_list = list()
+    for population_name in genomes:
+        infile = join(root_dir,f"populations/output/{population_name}/all.csv")
+        idf = pd.read_csv(infile)
+        odf = total_variant_count(df=idf,genome_ids = genomes[population_name])
+        odf.rename(columns={'count':population_name},inplace=True)
+        df_list.append(odf)
+    mdf = pd.concat(df_list,axis=1)
+    if outputfile:
+        mdf.to_csv(outputfile)
+
+    return mdf
 
 if __name__ == "__main__":
     root_dir = join(Path.home(),"cp_als")
