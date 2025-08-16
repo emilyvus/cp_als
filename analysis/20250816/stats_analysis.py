@@ -47,8 +47,9 @@ def attic():
 
 if __name__ == "__main__":
      root_dir = join(Path.home(),"cp_als")
-     outputfile= join(root_dir,"analysis/20250816/mean_variant_count_all_populations.csv")
-     #mdf = create_gnome_mean_df(root_dir=root_dir,genomes=genomes,outputfile=outputfile)
+     # outputfile= join(root_dir,"analysis/20250816/mean_variant_count_all_populations.csv")
+     # mdf = create_gnome_mean_df(root_dir=root_dir,genomes=genomes,outputfile=outputfile)
+     outputfile= join(root_dir,"analysis/20250816/variant_count_all_populations.csv")
      mdf = create_gnome_count_df(root_dir=root_dir,genomes=genomes,outputfile=outputfile)
      
      population_names = list(mdf.columns)

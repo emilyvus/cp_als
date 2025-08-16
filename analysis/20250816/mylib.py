@@ -3,6 +3,7 @@ from scipy import stats
 from os.path import join
 from pathlib import Path
 import pathlib
+from typing import Dict, List
 
 genomes = {
     "ACB": ['HG02323', 'HG02337', 'HG02555', 'HG02284', 'HG02053', 'HG02307', 'HG02052', 'HG01986', 'HG02549', 'HG02479', 'HG02554', 'HG02427', 'HG02471', 'HG01880', 'HG02419', 'HG02332', 'HG02108', 'HG01883', 'HG02537', 'HG02318', 'HG01985', 'HG02484', 'HG02497', 'HG02470', 'HG02334', 'HG02476', 'HG02545', 'HG02054', 'HG02330', 'HG01879', 'HG02501', 'HG02450', 'HG02317', 'HG02477', 'HG02489', 'HG01890', 'HG02502', 'HG02481', 'HG02449', 'HG02546', 'HG02439', 'HG01882', 'HG02558', 'HG02433', 'HG02496', 'HG02508', 'HG01896', 'HG01894', 'HG02445', 'HG02283', 'HG02255', 'HG02256', 'HG02580', 'HG02051', 'HG01889', 'HG02014', 'HG02511', 'HG01885', 'HG01988', 'HG01912', 'HG02420', 'HG02315', 'HG02111', 'HG01958', 'HG02095', 'HG01886', 'HG01990', 'HG02541', 'HG02314', 'HG01956', 'HG02442', 'HG02429', 'HG01914', 'HG02282', 'HG02325', 'HG02505', 'HG02010', 'HG02309', 'HG02322', 'HG02107', 'HG02144', 'HG02012', 'HG02308', 'HG02536', 'HG02436', 'HG02343', 'HG02009', 'HG01915', 'HG02485', 'HG02577', 'HG01989', 'HG02281', 'HG02455', 'HG02143', 'HG02557', 'HG02013', 'HG02339'],
@@ -40,6 +41,29 @@ def compute_t_test(mdf,population_name_1 = "GBR",population_name_2 = "ASW"):
      print(f"P-value: {p_value:.4f}")
 
 
+def genome_variant_mean (df,genome_ids):
+     df = df[["gene"]+ genome_ids ]
+     genome_df = df.groupby(["gene"]).sum().sum() / len(genome_ids)
+     rdf = pd.DataFrame()
+     rdf['mean']
+     return genome_df
+
+# def create_mean_variant_counts_for_populations(root_dir, genomes: Dict, outputfile: str = None):
+#     df_list = []
+#     for population_name, genome_ids in genomes.items():
+#         infile = join(root_dir, f"populations/output/{population_name}/all.csv")
+#         df = pd.read_csv(infile)
+#         df = df[["gene"] + genome_ids]
+#         genome_df = df.groupby(["gene"]).sum().sum() / len(genome_ids)
+#         population_df = pd.DataFrame({'mean': genome_df})
+#         population_df.rename(columns={'mean': population_name}, inplace=True)
+#         df_list.append(population_df)
+#     combined_df = pd.concat(df_list, axis=1)
+#     if outputfile:
+#         combined_df.to_csv(outputfile)
+    
+#     return combined_df
+
 
 
 def mean_variant_count(df,genome_ids):
@@ -57,8 +81,6 @@ def total_variant_count(df,genome_ids):
     rdf['count']= g_df 
     return rdf
 
-
-from typing import Dict, List
 def create_gnome_mean_df(root_dir,genomes:Dict,outputfile:str=None):
     df_list = list()
     for population_name in genomes:
